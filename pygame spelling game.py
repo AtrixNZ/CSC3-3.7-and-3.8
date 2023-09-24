@@ -32,6 +32,100 @@ hard_words = ["measure", "although", "thought", "again", "alright"]
 difficulty_levels = ["Easy", "Medium", "Hard"]
 current_difficulty = 0  # Default to Easy
 
+# Age Verification Screen
+def age_verification_screen():
+    age = ""
+    age_valid = False
+    age_message = ""
+
+    screen.fill(BLACK)
+    
+    age_text = menu_font.render("How old are you? (Must be 5-12 years old to play)", True, WHITE)
+    age_text_rect = age_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50))
+    screen.blit(age_text, age_text_rect)
+
+    age_input_surface = pygame.Surface((400, 50))
+    age_input_surface.fill(WHITE)
+    age_input_rect = pygame.Rect(200, SCREEN_HEIGHT // 2 + 20, 400, 50)
+    pygame.draw.rect(age_input_surface, BLACK, age_input_rect, 2)
+    
+    age_input_render = input_font.render(age, True, BLACK)
+    screen.blit(age_input_surface, age_input_rect)
+    screen.blit(age_input_render, (age_input_rect.x + 10, age_input_rect.y + 10))
+
+    if age_message:
+        message_text = menu_font.render(age_message, True, RED)
+        message_rect = message_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 100))
+        screen.blit(message_text, message_rect)
+
+    # Add small text below the text box
+    proceed_text = input_font.render("Press Enter to Proceed", True, WHITE)
+    proceed_rect = proceed_text.get_rect(center=(SCREEN_WIDTH // 2, age_input_rect.bottom + 20))
+    screen.blit(proceed_text, proceed_rect)
+
+    # Style the "Return to Main Menu" button to look like the "Continue" button
+    return_to_menu_button_text = menu_font.render("Return to Main Menu", True, WHITE)
+    return_to_menu_button_rect = return_to_menu_button_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100))
+    pygame.draw.rect(screen, WHITE, return_to_menu_button_rect, 2)  # Add a box around the button
+    screen.blit(return_to_menu_button_text, return_to_menu_button_rect)
+
+    pygame.display.flip()
+
+    waiting_for_input = True
+    while waiting_for_input:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    # Check if the age is valid
+                    try:
+                        age_value = int(age)
+                        if 5 <= age_value <= 12:
+                            age_valid = True
+                            waiting_for_input = False
+                        else:
+                            age_message = "You are too young or too old to play this game."
+                    except ValueError:
+                        age_message = "Please enter a valid age (5-12)."
+                elif event.key == pygame.K_BACKSPACE:
+                    age = age[:-1]
+                else:
+                    age += event.unicode
+
+                # Update age input rendering
+                age_input_render = input_font.render(age, True, BLACK)
+                screen.fill(BLACK, age_input_rect)
+                screen.blit(age_input_surface, age_input_rect)
+                screen.blit(age_input_render, (age_input_rect.x + 10, age_input_rect.y + 10))
+
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                if return_to_menu_button_rect.collidepoint(mouse_pos):
+                    return_to_main_menu()  # Return to the main menu
+        
+        pygame.display.flip()
+
+    if age_valid:
+        instruction_screen()  # Take the user to the instructions screen
+
+
+
+
+# Return to Main Menu
+def return_to_main_menu():
+    main_menu()
+
+# Display a message in the center of the screen
+def display_message(message):
+    message_text = menu_font.render(message, True, WHITE)
+    message_rect = message_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 150))
+    screen.fill(BLACK)
+    screen.blit(message_text, message_rect)
+    pygame.display.flip()
+    pygame.time.delay(2000)  # Display the message for 2 seconds
+
 # Main Menu
 def draw_main_menu():
     screen.fill(BLACK)
@@ -64,7 +158,7 @@ def main_menu():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
                 if start_rect.collidepoint(mouse_pos):
-                    instruction_screen()  # Show instructions
+                    age_verification_screen()  # Show age verification screen
                 elif settings_rect.collidepoint(mouse_pos):
                     change_settings()
                 elif quit_rect.collidepoint(mouse_pos):
